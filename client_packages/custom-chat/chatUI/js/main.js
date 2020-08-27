@@ -21,6 +21,9 @@ function coolDownHandler() {
     }, 500);
 }
 
+function StripColors(text) {
+    return text.replace(/~[A-Za-z]~/g, "").replace(/!{.+}/g, "");
+}
 
 var validEmoticons =[
     { text: ":)", replacement: "ec ec-slightly-smiling-face" },
@@ -39,6 +42,7 @@ function enableChatInput( enable )
         //chat_printing = enable;
 
         mp.invoke( "focus", enable );
+        mp.invoke("setTypingInChatState", enable); // added 1.1
 
         if( enable )
         {
@@ -88,17 +92,6 @@ function convertEmoticons( text )
 
 var chatAPI =
 {
-    // push: ( text ) =>
-    // {
-    //     chat.container.prepend( "<li>" + convertEmoticons( text ) + "</li>" );
-
-    //     chat.size++;
-
-    //     if( chat.size >= chat.history_limit )
-    //     {
-    //         chat.container.children( ":last" ).remove( );
-    //     }
-    // },
     push: (text) =>
 	{
         let safeChat = text.replace(/<[^>]*>/g, "");
@@ -198,6 +191,8 @@ $( document ).ready( function( )
                 if (chat.coolDown != false){
 
                 var value = chat.input.children( "input" ).val( );
+                // strip colors
+                //value = StripColors(value);       // should strip colors ONLY from input
                 if (value.length < 286){
                 if (value.length > 0)
                 {
@@ -266,23 +261,22 @@ $( document ).ready( function( )
     } );
 } );
 
-mp.events.add("chat", bool => {
-    if (bool){
-        mp.gui.chat.show(true);
-        mp.gui.chat.activate(true);
-        chatAPI.show(true)
-        
-    }
-    else{
-        mp.gui.chat.show(false);
-        mp.gui.chat.activate(false);
-        chatAPI.show(false)
-    }
-})
+// from rage forums, disabling in favor of below
 
-let api = {"chat:push": chatAPI.push, "chat:clear": chatAPI.clear, "chat:activate": chatAPI.activate, "chat:show": chatAPI.show}; 
+// let api = {"chat:push": chatAPI.push, "chat:clear": chatAPI.clear, "chat:activate": chatAPI.activate, "chat:show": chatAPI.show}; 
 
-for(let fn in api)
+// for(let fn in api)
+// {
+// 	mp.events.add(fn, api[fn]);
+// }
+
+// from 1.1 chat
+if(mp.events)
 {
-	mp.events.add(fn, api[fn]);
+	let api = {"chat:push": chatAPI.push, "chat:clear": chatAPI.clear, "chat:activate": chatAPI.activate, "chat:show": chatAPI.show}; 
+
+	for(let fn in api)
+	{
+		mp.events.add(fn, api[fn]);
+	}
 }

@@ -52,13 +52,15 @@ mp.events.add('server:loginAccount', async (player, username, password) => {
     }
 });
 
-mp.events.add('server:loadAccount', async (player, username) => {
+mp.events.add('server:loadAccount', async (player, username) => {               // This is where vars should get set. can use player.var for serverside or player.setVariable("var", var) for shared.
     try {
         const [rows] = await mp.db.query('SELECT * FROM `accounts` WHERE `username` = ?', [username]);
         if(rows.length != 0){
             player.sqlID = rows[0].ID;
             player.name = username;
-            rows[0].position === null ? player.position = new mp.Vector3(mp.settings.defaultSpawnPosition) : player.position = new mp.Vector3(JSON.parse(rows[0].position));
+            rows[0].position === null ? player.lastposition = new mp.Vector3(mp.settings.defaultSpawnPosition) : player.lastposition = new mp.Vector3(JSON.parse(rows[0].position));
+            //player.lastposition = new mp.Vector3(JSON.parse(rows[0].position));
+            player.call("spawner", [player]) // spawn.js
             player.setVariable("loggedIn", true);
         }
     } catch(e) { console.log(`[MySQL] ERROR: ${e.sqlMessage}\n[MySQL] QUERY: ${e.sql}`) };
