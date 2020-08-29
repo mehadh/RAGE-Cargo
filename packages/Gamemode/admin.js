@@ -12,7 +12,7 @@ mp.events.addCommand("weather", (player, id) => {
         else{
             mp.world.weather = id
             weather = id
-            player.outputChatBox(`Set weather to ${id} (if it was valid)`)
+            player.outputChatBox(`!{#187bcd}SERVER:!{#FFFFFF}Set weather to ${id} (if it was valid)`)
             mp.events.call("client:Weather", [id])
             mp.players.forEach((person) => {
                 person.call("client:Weather", [id])

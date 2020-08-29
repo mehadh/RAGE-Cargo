@@ -53,7 +53,6 @@ mp.events.add("playerQuit", (player) => {
             vehicle.publicTimer = setTimeout(function(){mp.events.call("server:publicRespawn", vehicle)}, 300000)
         }
     }
-    mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} left the server!`)
 })
 
 mp.events.add("server:publicRespawn", vehicle => {

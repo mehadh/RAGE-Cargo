@@ -3,6 +3,10 @@ mp.events.add("playerJoin", player => {
     player.call('InitiateCustomChat')
 })
 
+mp.events.add("playerQuit", (player) => {
+    mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} left the server!`)
+})
+
 mp.events.add("playerChat", (player, message) => {  // Global chat
     mp.players.broadcast(`${player.name}: ${message}`)  
 })
