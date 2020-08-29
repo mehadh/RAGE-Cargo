@@ -1,7 +1,8 @@
 {
 	"maxplayers" : 100,
-	"name" : "RAGE:MP Unofficial server", 
-	"gamemode" : "freeroam", 
+	"name" : "RAGE:CARGO [Trucks]", 
+	"gamemode" : "trucking", 
+	"language" : "en",
 	"stream-distance" : 500.0,
 	"announce" : false,
 	"csharp" : "disabled",

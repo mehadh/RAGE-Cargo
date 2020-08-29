@@ -73,13 +73,13 @@ mp.events.add('client:showLoginScreen', () => {
 
 mp.events.add('client:hideLoginScreen', () => {
     loginBrowser.destroy();
-    mp.players.local.freezePosition(false);
-    mp.game.ui.setMinimapVisible(false);
-    mp.gui.chat.activate(true);
-    mp.gui.chat.show(true);
+    // mp.players.local.freezePosition(false);
+    // mp.game.ui.setMinimapVisible(false);
+    // mp.gui.chat.activate(true);
+    // mp.gui.chat.show(true);
     mp.gui.cursor.show(false, false);
-    mp.game.ui.displayRadar(true);
-    mp.events.call("client:disableCamera");
+    // mp.game.ui.displayRadar(true);
+    // mp.events.call("client:disableCamera");
 });
 
 mp.events.add('client:enableCamera', () => {
@@ -98,3 +98,13 @@ mp.events.add('client:disableCamera', () => {
     mp.game.cam.renderScriptCams(false, false, 0, false, false);
     mp.players.local.freezePosition(false);
 });
+
+mp.events.add('client:loginCamera', () => {     // We've added this from client:hideLoginScreen so that we can call this AFTER the player selects his point of spawn. 
+    mp.players.local.freezePosition(false);
+    mp.game.ui.setMinimapVisible(false);
+    mp.gui.chat.activate(true);
+    mp.gui.chat.show(true);
+    //mp.gui.cursor.show(false, false);
+    mp.game.ui.displayRadar(true);
+    mp.events.call("client:disableCamera")
+})

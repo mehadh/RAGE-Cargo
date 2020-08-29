@@ -8,7 +8,10 @@ mp.events.add("playerChat", (player, message) => {  // Global chat
 })
 
 mp.events.addCommand("freecam", (player) => {   // Freecam mode, should be restricted to admin in future
-    player.call("freecamo", [player])
+	if (player.admin > 1){
+		player.call("freecamo", [player])
+	}
+	else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You do not have permission to use that command!")}
 })
 
 mp.events.addCommand('coords', (player) => { // DEV coords in logs
@@ -72,18 +75,18 @@ function findRageMpPlayer(playerNameOrPlayerId) {       // This function finds a
 		player.outputChatBox(`${listofppl[i].name} is ID ${listofppl[i].id}`)
 	}
 	else{
-		player.outputChatBox(`!{#FF0000}ERROR:!{#FFFFFF}No player found!`)
+		player.outputChatBox(`!{#FF0000}ERROR: !{#FFFFFF}No player found!`)
 	}
 }
 }
 else{
-	player.outputChatBox("!{#f7ec16}USAGE:!{#FFFFFF} /id [name/id]")
+	player.outputChatBox("!{#f7ec16}USAGE: !{#FFFFFF}/id [name/id]")
 }
 })
 
 mp.events.addCommand("pm", (player, fullText, id, ...message) => {  // Privat messages between players.
 	if (id == null || id == undefined || message == null || message == undefined){
-        player.outputChatBox('USAGE: /pm [id] [message]')
+        player.outputChatBox('!{#f7ec16}USAGE: !{#FFFFFF}/pm [id] [message]')
     }
     else{
     let getId = findRageMpPlayer(id);
@@ -93,7 +96,7 @@ mp.events.addCommand("pm", (player, fullText, id, ...message) => {  // Privat me
 		getId.outputChatBox( `!{#f7d216}(( PM from ${player.name} (${player.id}): ${message} ))`)
 	}	
 	else{
-		player.outputChatBox('!{#FF0000}ERROR:!{#FFFFFF}No player found!')
+		player.outputChatBox('!{#FF0000}ERROR: !{#FFFFFF}No player found!')
 	}
 	}
 
@@ -116,7 +119,7 @@ mp.events.addCommand("me", (player, message) => {
 	mp.players.broadcast(`!{#C2A2DA} * ${player.name} ${message}`);
 	}
 	else{
-		player.outputChatBox("!{#f7ec16}USAGE:!{#FFFFFF} /me [action]")
+		player.outputChatBox("!{#f7ec16}USAGE: !{#FFFFFF}/me [action]")
 	}
 })
 

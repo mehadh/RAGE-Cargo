@@ -56,11 +56,14 @@ mp.events.add('server:loadAccount', async (player, username) => {               
     try {
         const [rows] = await mp.db.query('SELECT * FROM `accounts` WHERE `username` = ?', [username]);
         if(rows.length != 0){
-            player.sqlID = rows[0].ID;
-            player.name = username;
+            player.sqlID = rows[0].ID; // accId
+            player.name = username; // set name to their login name
+            // begin new vars 
+            player.admin = rows[0].admin
+            // end new vars
             rows[0].position === null ? player.lastposition = new mp.Vector3(mp.settings.defaultSpawnPosition) : player.lastposition = new mp.Vector3(JSON.parse(rows[0].position));
             //player.lastposition = new mp.Vector3(JSON.parse(rows[0].position));
-            player.call("spawner", [player]) // spawn.js
+            player.call("client:spawnMenu", [player]) // spawn.js
             player.setVariable("loggedIn", true);
         }
     } catch(e) { console.log(`[MySQL] ERROR: ${e.sqlMessage}\n[MySQL] QUERY: ${e.sql}`) };
