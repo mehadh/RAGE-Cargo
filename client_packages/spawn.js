@@ -12,6 +12,10 @@ let player = mp.players.local
 let spawnMenu = new Menu("Spawn", "", new Point(50, 50));
 spawnMenu.AddItem(new UIMenuItem("Port of Los Santos", "Press Enter to spawn here"));
 spawnMenu.AddItem(new UIMenuItem("LSIA - Shamal", "Press Enter to spawn here"));
+spawnMenu.AddItem(new UIMenuItem("LSIA - Cuban800", "Press Enter to spawn here"));
+spawnMenu.AddItem(new UIMenuItem("Sandy Shores Airfield", "Press Enter to spawn here"));
+spawnMenu.AddItem(new UIMenuItem("McKenzie Field Hangar", "Press Enter to spawn here"));
+spawnMenu.AddItem(new UIMenuItem("Fort Zancudo", "Press Enter to spawn here"));
 spawnMenu.AddItem(new UIMenuItem("Last Known Position", "Press Enter to spawn here"));
 spawnMenu.Visible = false;
 let other2 = false
@@ -22,9 +26,9 @@ mp.events.add("client:spawnMenu", (player) =>{
 });
 
 
-spawnMenu.ItemSelect.on((item, index) => {
-    switch(index){
-        case 0:
+spawnMenu.ItemSelect.on((item, index) => {  // This code could've been more efficient by just placing other2/spawnmenuclose/logincamera after this line, and then by doing callRemote of
+    switch(index){                                      // The index and naming all the cases as the indexes. That being said, it's not too much of a hassle to do here, so I do it this way.
+        case 0:                                 // Furthermore, I mainly just wanted to use some more switch cases with this project! 
             other2 = true
             mp.events.callRemote("server:spawn", (player, "port"))
             spawnMenu.Close();
@@ -33,6 +37,30 @@ spawnMenu.ItemSelect.on((item, index) => {
         case 1:
             other2 = true
             mp.events.callRemote("server:spawn", (player, "lsia"))
+            spawnMenu.Close();
+            mp.events.call("client:loginCamera")
+        break
+        case 2:
+            other2 = true
+            mp.events.callRemote("server:spawn", (player, "lsia2"))
+            spawnMenu.Close();
+            mp.events.call("client:loginCamera")
+        break
+        case 3: 
+            other2 = true
+            mp.events.callRemote("server:spawn", (player, "ssa"))
+            spawnMenu.Close();
+            mp.events.call("client:loginCamera")
+        break
+        case 4:
+            other2 = true
+            mp.events.callRemote("server:spawn", (player, "mkf"))
+            spawnMenu.Close();
+            mp.events.call("client:loginCamera")
+        break
+        case 5:
+            other2 = true
+            mp.events.callRemote("server:spawn", (player, "fz"))
             spawnMenu.Close();
             mp.events.call("client:loginCamera")
         break

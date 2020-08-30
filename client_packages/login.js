@@ -86,7 +86,8 @@ mp.events.add('client:enableCamera', () => {
     loginCam = mp.cameras.new('default', new mp.Vector3(0, 0, 0), new mp.Vector3(0, 0, 0), 40);
     mp.players.local.position = new mp.Vector3(-1757.12, -739.53, 10);
     mp.players.local.freezePosition(true);
-
+    mp.gui.chat.activate(false);
+    mp.gui.chat.show(false);
     loginCam.setActive(true);
     loginCam.setCoord(-1757.12, -739.53, 25);
     loginCam.pointAtCoord(-1764, -715, 35);

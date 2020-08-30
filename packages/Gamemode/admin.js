@@ -7,12 +7,12 @@ mp.events.add('playerJoin', (player) => {
 mp.events.addCommand("weather", (player, id) => {
     if (player.admin > 1){
         if (id == null || id == undefined){
-            player.outputChatBox('!{#f7ec16}USAGE:!{#FFFFFF} /weather [string] ex: extrasunny')
+            player.outputChatBox('!{#f7ec16}USAGE: !{#FFFFFF}/weather [string] ex: extrasunny')
         }
         else{
             mp.world.weather = id
             weather = id
-            player.outputChatBox(`!{#187bcd}SERVER:!{#FFFFFF}Set weather to ${id} (if it was valid)`)
+            player.outputChatBox(`!{#187bcd}SERVER: !{#FFFFFF}Set weather to ${id} (if it was valid)`)
             mp.events.call("client:Weather", [id])
             mp.players.forEach((person) => {
                 person.call("client:Weather", [id])
@@ -20,7 +20,7 @@ mp.events.addCommand("weather", (player, id) => {
         }
     }
     else{
-        player.outputChatBox('!{#FF0000}ERROR:!{#FFFFFF} You do not have permission to use this command.')
+        player.outputChatBox('!{#FF0000}ERROR: !{#FFFFFF}You do not have permission to use this command.')
     }
 })
 
