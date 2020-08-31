@@ -2,5 +2,6 @@ ragemp-server.exe
 BugTrap-x64.dll
 conf.json
 bin/
+node_modules
 client_packages/.listcache
 packages/template/settings.json
