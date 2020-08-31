@@ -3,5 +3,4 @@ BugTrap-x64.dll
 conf.json
 bin/
 client_packages/.listcache
-node_modules
 packages/template/settings.json
