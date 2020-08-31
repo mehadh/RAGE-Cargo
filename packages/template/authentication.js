@@ -60,6 +60,8 @@ mp.events.add('server:loadAccount', async (player, username) => {               
             player.name = username; // set name to their login name
             // begin new vars 
             player.admin = rows[0].admin
+            player.money = rows[0].money
+            player.call('money', [player, rows[0].money])
             // end new vars
             rows[0].position === null ? player.lastposition = new mp.Vector3(mp.settings.defaultSpawnPosition) : player.lastposition = new mp.Vector3(JSON.parse(rows[0].position));
             //player.lastposition = new mp.Vector3(JSON.parse(rows[0].position));
@@ -142,3 +144,45 @@ function timeoutKick(user){
         // user.kick();
     }, 60000);
 }
+// begin new stuff
+
+mp.events.add('server:addMoney', async (player, amount) => {  
+    try {
+        const [status] = await mp.db.query('UPDATE `accounts` SET `money` = `money` + ? WHERE `ID` = ?', [amount, player.sqlID]);
+        if(status.affectedRows === 1){
+            console.log(`${player.name}'s data successfully saved.`);
+            mp.events.call('server:updateMoney', (player))
+        }
+        else{console.log(`${status.affectedRows} and ${player.sqlID} and ${amount} or even ${player.name}`)}
+    } catch(e) { console.log(e)
+    player.outputChatBox(`!{#FF0000}ERROR: !{#FFFFFF}There was an error while giving you $${amount}. Please contact an admin!`)}
+});
+
+mp.events.add('server:removeMoney', async (player, amount) => {  
+    try {
+        const [status] = await mp.db.query('UPDATE `accounts` SET `money` = `money` - ? WHERE `ID` = ?', [amount, player.sqlID]);
+        if(status.affectedRows === 1){
+            console.log(`${player.name}'s data successfully saved.`);
+            mp.events.call('server:updateMoney', (player))
+        }
+        else{console.log(`${status.affectedRows} and ${player.sqlID} and ${amount}`)}
+    } catch(e) { console.log(e)
+    player.outputChatBox(`!{#FF0000}ERROR: !{#FFFFFF}There was an error while saving your data (${amount}). Please contact an admin!`)}
+});
+
+mp.events.add('server:updateMoney', async (player) => {
+    try {
+        const [rows] = await mp.db.query('SELECT `money` FROM `accounts` WHERE `ID` = ?', [player.sqlID]);
+        if(rows.length != 0){
+            player.call('money', [player, rows[0].money])
+        }
+    } catch(e) { console.log(`[MySQL] ERROR: ${e.sqlMessage}\n[MySQL] QUERY: ${e.sql}`) };
+})
+
+// mp.events.addCommand('money', (player, money) => {
+//     mp.events.call('server:addMoney', player, money)
+// })
+
+// mp.events.addCommand('wallet', (player) => {
+//     mp.events.call("server:updateMoney", (player))
+// })

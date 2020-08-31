@@ -102,6 +102,12 @@ function airportDestination(airport){   // This should pick a destination that i
     return destination
 }
 
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 mp.events.addCommand("closestairport", player => {
     checkAirport(player)
     player.outputChatBox(`The closest airport to you is ${airport.name}.`)
@@ -207,13 +213,14 @@ async function reconnection(player){ // We use an async function so we can use a
 }
 
 mp.events.add("playerDeath", (player, reason, killer) => {  // This is a simple playerDeath event notifier, hopefully to be expanded in the future.
-    switch(reason){
-        case 341774354:
-            killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash because of ${killer.name}!`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash!`)
-            break;
-        default:
-            killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died because of ${killer.name}`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died!`)
-    }
+    // switch(reason){
+    //     case 341774354:
+    //         killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash because of ${killer.name}!`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash!`)
+    //         break;
+    //     default:
+    //         killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died because of ${killer.name}`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died!`)
+    // }
+    mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died!`)
     player.call('client:enableCamera')
     player.spawn(new mp.Vector3(-1757.12, -739.53, 10));
     player.call('client:spawnMenu')
@@ -228,26 +235,52 @@ mp.events.addCommand("work", (player) => {
         let vehicle = player.vehicle
         if (vehicle.mission){
             checkAirport(player) // checkAirport will return an airport object, which is what we will use to determine where the player will go
-            //player.outputChatBox(`${airport.name}`)
-            switch(vehicle.mission){
-                case "passengers":
-                    let loadAt = airport.passengers[Math.floor(Math.random()*airport.passengers.length)];
-                    player.call("client:createMissionMarker", [loadAt.position])
-                    player.call("client:createMissionBlip", [loadAt.position])
-                    airportDestination(loadAt) // returns destination
-                    player.inMission = true
-                    player.mission = []
-                    player.mission.origin = loadAt
-                    player.mission.destination = destination
-                    // todo: mission cargo is a random int that is no less than half veh extra and no more than veh extra, potential modifier on airport? 
-                    //player.mission.cargo = 
-                break;
-                case "cargo":
-                    player.outputChatBox("TODO: Cargo mission!")
-                break;
-                default:
-                    player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
+            if (player.inMission != true){
+                //player.outputChatBox(`${airport.name}`)
+                let loadAt;
+                let unloadAt;
+                switch(vehicle.mission){
+                    case "passengers":
+                        loadAt = airport.passengers[Math.floor(Math.random()*airport.passengers.length)];   // random position for player to load at
+                        player.call("client:createMissionMarker", [loadAt.position])
+                        player.call("client:createMissionBlip", [loadAt.position])  // these clientside will create the blip only for the player
+                        player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${airport.name} and use /load.`)
+                        //airportDestination(loadAt) // returns destination | edit: was this working???? it shoudlnt have been, fix below
+                        airportDestination(airport)
+                        player.inMission = true
+                        player.mission = []
+                        player.mission.origin = airport
+                        player.mission.destination = destination
+                        unloadAt = destination.passengers[Math.floor(Math.random()*destination.passengers.length)];
+                        player.mission.loadAt = loadAt
+                        player.mission.unloadAt = unloadAt
+                        player.mission.loaded = false
+                        player.mission.vehicle = vehicle
+                        player.mission.cargo = getRandomInt(1, vehicle.extra) // We use this function because in cargo we want to specify a minimum weight! Makes no sense to fly with 1 lb. 
+                    break;
+                    case "cargo":
+                        loadAt = airport.cargo[Math.floor(Math.random()*airport.cargo.length)];
+                        player.call("client:createMissionMarker", [loadAt.position])
+                        player.call("client:createMissionBlip", [loadAt.position])  
+                        player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${airport.name} and use /load.`)
+                        airportDestination(airport)
+                        player.inMission = true
+                        player.mission = []
+                        player.mission.origin = airport
+                        player.mission.destination = destination
+                        unloadAt = destination.cargo[Math.floor(Math.random()*destination.cargo.length)];
+                        player.mission.loadAt = loadAt
+                        player.mission.unloadAt = unloadAt
+                        player.mission.loaded = false
+                        player.mission.vehicle = vehicle
+                        player.mission.cargo = getRandomInt(Math.round((vehicle.extra)/2), vehicle.extra) // the minimum cargo will be half of the cargo capability 
+
+                    break;
+                    default:
+                        player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
+                }
             }
+            else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You are already working!")}
         }
     }
     else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You must be in a vehicle to use this command!")}
@@ -256,3 +289,92 @@ mp.events.addCommand("work", (player) => {
 // mp.events.addCommand("freezeMyself", (player) => {       // Playing around, I wanted to see if I could run clientside code dynamically. 
 //     player.call("client:code", ["mp.players.local.freezePosition(true)"])    // Can change to any code just by asking for an arg and calling the event that way.
 //   });    // Obviously commented out because this is NOT something you should do!
+
+mp.events.addCommand("load", (player) => {
+    if (player.vehicle){
+        let vehicle = player.vehicle
+        if (vehicle.mission && player.inMission == true && vehicle == player.mission.vehicle){
+            let dist = player.dist(player.mission.loadAt.position)
+            if (dist < 6){
+                player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please wait as your vehicle is loaded.`)
+                player.call("client:freezeVeh", [true])
+                player.call("client:statusText", ["Loading"])
+                setTimeout(function(){
+                    player.call("client:freezeVeh", [false])
+                    player.call("client:statusText", [null])
+                    player.mission.loaded = true
+                    switch(vehicle.mission){
+                        case "passengers":
+                            player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Your vehicle has been loaded with ${player.mission.cargo} passengers.`)
+                        break;
+                        case "cargo":
+                            player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Your vehicle has been loaded with ${player.mission.cargo} lbs of cargo.`)
+                        break;
+                        default:
+                            player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
+                        break;
+                    }
+                    player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${player.mission.destination.name} and use /unload.`)
+                    player.call("client:createMissionMarker", [player.mission.unloadAt.position])
+                    player.call("client:createMissionBlip", [player.mission.unloadAt.position]) 
+                }, 30000) // 30 seconds
+            }
+            else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}Get closer to the loading point!")}
+        }
+        else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You can not load right now!")}
+    }
+    else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You must be in a vehicle to use this command!")}
+})
+
+mp.events.addCommand("text", (player, args) => {
+    player.call("client:statusText", [args])
+})
+
+// async function missionReward(mission){
+//     switch(mission){
+//         case "passengers"
+//     }
+// }
+
+mp.events.addCommand("unload", (player) => {
+    if (player.vehicle){
+        let vehicle = player.vehicle
+        if (vehicle.mission && player.inMission == true && vehicle == player.mission.vehicle && player.mission.loaded == true){
+            let dist = player.dist(player.mission.unloadAt.position)
+            if (dist < 6){
+                player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please wait as your vehicle is unloaded.`)
+                player.call("client:freezeVeh", [true])
+                player.call("client:statusText", ["Unloading"])
+                setTimeout(function(){
+                    player.call("client:freezeVeh", [false])
+                    player.call("client:statusText", [null])
+                    switch(vehicle.mission){
+                        case "passengers":
+                            mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} transported ${player.mission.cargo} passenger(s) from ${player.mission.origin.name} to ${player.mission.destination.name}.`)
+                        break;
+                        case "cargo":
+                            mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} transported ${player.mission.cargo} lbs of cargo from ${player.mission.origin.name} to ${player.mission.destination.name}.`)
+                        break;
+                        default:
+                            player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
+                        break;
+                    }
+                    player.inMission = false            // To be extra safe, I am resetting all the values set in /load.
+                    player.mission.origin = null
+                    player.mission.destination = null
+                    player.mission.loadAt = null
+                    player.mission.unloadAt = null
+                    player.mission.loaded = false
+                    player.mission.vehicle = null
+                    player.mission.cargo = null
+                    let reward = 500 // in the future we will use a function to determine how much the player should get, for now, they just get 500 :)
+                    mp.events.call("server:addMoney", player, reward)
+                    player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}You have earned $${reward} for your work.`)
+                }, 30000)
+            }
+            else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}Get closer to the unloading point!")}
+        }
+        else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You can not unload right now!")}
+    }
+    else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You must be in a vehicle to use this command!")}
+})
