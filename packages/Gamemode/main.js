@@ -367,8 +367,7 @@ mp.events.addCommand("unload", (player) => {
                     player.mission.loaded = false
                     player.mission.vehicle = null
                     player.mission.cargo = null
-                    player.call("client:createMissionMarker", [null])
-                    player.call("client:createMissionBlip", [null]) 
+                    player.call("client:destroyMission")
                     let reward = 500 // in the future we will use a function to determine how much the player should get, for now, they just get 500 :)
                     mp.events.call("server:addMoney", player, reward)
                     player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}You have earned $${reward} for your work.`)
