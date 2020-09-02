@@ -20,8 +20,8 @@ mp.events.add("client:createMissionBlip", (position) => {
 })
 
 mp.events.add("client:destroyMission", () => {
-    if (marker){marker.destroy()}
-    if (blip){blip.destroy()}
+    // if (marker){marker.destroy()}
+    // if (blip){blip.destroy()}
 })
 
 mp.events.add("client:freezeVeh", (bool) => {
