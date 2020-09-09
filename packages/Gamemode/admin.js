@@ -50,3 +50,14 @@ mp.events.addCommand("admins", (player) => {
           if (person.admin > 0){player.outputChatBox(`${person.name} - Level ${person.admin} Administrator`)}
       })
   })
+
+  
+mp.events.addCommand('veh', (player, fullText, arg1) => { // DEV veh spawner
+    if (player.admin > 2){
+        mp.vehicles.new(arg1, player.position, 
+            {
+                color: [[255, 0, 0], [255, 0, 0]]
+            });
+    }
+    else{player.outputChatBox('!{#FF0000}ERROR: !{#FFFFFF}You do not have permission to use this command.')}
+});

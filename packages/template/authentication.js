@@ -60,6 +60,8 @@ mp.events.add('server:loadAccount', async (player, username) => {               
             player.name = username; // set name to their login name
             // begin new vars 
             player.admin = rows[0].admin
+            player.flights = rows[0].flights
+            player.deliveries = rows[0].deliveries
             player.money = rows[0].money
             player.call('money', [player, rows[0].money])
             // end new vars
@@ -150,31 +152,36 @@ mp.events.add('server:addMoney', async (player, amount) => {
     try {
         const [status] = await mp.db.query('UPDATE `accounts` SET `money` = `money` + ? WHERE `ID` = ?', [amount, player.sqlID]);
         if(status.affectedRows === 1){
-            console.log(`${player.name}'s data successfully saved.`);
-            mp.events.call('server:updateMoney', (player))
+            //console.log(`${player.name}'s data successfully saved.`);
+            mp.events.call('server:updateVars', (player))
         }
         else{console.log(`${status.affectedRows} and ${player.sqlID} and ${amount} or even ${player.name}`)}
     } catch(e) { console.log(e)
     player.outputChatBox(`!{#FF0000}ERROR: !{#FFFFFF}There was an error while giving you $${amount}. Please contact an admin!`)}
 });
 
-mp.events.add('server:removeMoney', async (player, amount) => {  
-    try {
+mp.events.add('server:removeMoney', async (player, amount) => {  // we actually don't need this because addMoney can take -500 and it will do the job properly
+    try {                                                         // genuinely there is no use for this event. perhaps i will remove it in the future.
         const [status] = await mp.db.query('UPDATE `accounts` SET `money` = `money` - ? WHERE `ID` = ?', [amount, player.sqlID]);
         if(status.affectedRows === 1){
-            console.log(`${player.name}'s data successfully saved.`);
-            mp.events.call('server:updateMoney', (player))
+            //console.log(`${player.name}'s data successfully saved.`);
+            mp.events.call('server:updateVars', (player))
         }
         else{console.log(`${status.affectedRows} and ${player.sqlID} and ${amount}`)}
     } catch(e) { console.log(e)
     player.outputChatBox(`!{#FF0000}ERROR: !{#FFFFFF}There was an error while saving your data (${amount}). Please contact an admin!`)}
 });
-
-mp.events.add('server:updateMoney', async (player) => {
+// this was updateMoney, we will change to updateVars because we can use it for more vars now
+mp.events.add('server:updateVars', async (player) => {
     try {
-        const [rows] = await mp.db.query('SELECT `money` FROM `accounts` WHERE `ID` = ?', [player.sqlID]);
+        const [rows] = await mp.db.query('SELECT * FROM `accounts` WHERE `ID` = ?', [player.sqlID]);
         if(rows.length != 0){
+            player.money = rows[0].money
+            player.admin = rows[0].admin
+            player.flights = rows[0].flights
+            player.deliveries = rows[0].deliveries
             player.call('money', [player, rows[0].money])
+
         }
     } catch(e) { console.log(`[MySQL] ERROR: ${e.sqlMessage}\n[MySQL] QUERY: ${e.sql}`) };
 })
@@ -186,3 +193,28 @@ mp.events.add('server:updateMoney', async (player) => {
 // mp.events.addCommand('wallet', (player) => {
 //     mp.events.call("server:updateMoney", (player))
 // })
+
+mp.events.add('server:incrementMission', async (player, type) => {
+    try {
+        const [status] = await mp.db.query('UPDATE `accounts` SET `'+type+'` = `'+type+'` + 1 WHERE `ID` = ?', [player.sqlID]);
+        if(status.affectedRows === 1){
+            //console.log(`${player.name}'s data successfully saved.`);
+            mp.events.call('server:updateVars', (player))
+        }
+        else{console.log(`successful query without result`)}
+    } catch(e) { console.log(e)
+    player.outputChatBox(`!{#FF0000}ERROR: !{#FFFFFF}There was an error while giving you $${amount}. Please contact an admin!`)}
+})
+
+// mp.events.addCommand("increment", (player) => {
+//     mp.events.call('server:incrementMission', player, "flights")
+// })
+
+mp.events.addCommand('obj', (player, name) => {
+    mp.objects.new(`${name}`, player.position,
+        {
+            rotation: player.rotation,
+            alpha: 250,
+            dimension: player.dimension
+        });
+});

@@ -19,7 +19,8 @@ mp.events.addCommand("freecam", (player) => {   // Freecam mode, should be restr
 })
 
 mp.events.addCommand('coords', (player) => { // DEV coords in logs
-    player.outputChatBox(""+player.position);
+	player.outputChatBox(""+player.position);
+	console.log(player.position);
 });
 
 mp.events.addCommand("color", (player) => { // Dev CMD to test colors
@@ -127,10 +128,7 @@ mp.events.addCommand("me", (player, message) => {
 	}
 })
 
-
-mp.events.addCommand('veh', (player, fullText, arg1) => { // DEV veh spawner
-    mp.vehicles.new(arg1, player.position, 
-        {
-            color: [[255, 0, 0], [255, 0, 0]]
-        });
-});
+mp.events.addCommand("stats", (player) => {	// TODO: colors!!!!
+	player.outputChatBox("================== RAGE:CARGO ==================")
+	player.outputChatBox(`Username: ${player.name} Account ID: ${player.sqlID} Money: $${player.money} Flights: ${player.flights} Deliveries: ${player.deliveries}`)
+})
