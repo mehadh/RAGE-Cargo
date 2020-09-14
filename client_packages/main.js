@@ -1,7 +1,22 @@
 let marker;
-mp.events.add("client:createMissionMarker", (position) => {
+mp.events.add("client:createMissionMarker", (position, type) => {
+    let icon;
     if (marker){marker.destroy()}
-    marker = mp.markers.new(7, position, 5, {
+    switch(type){
+        case "plane":
+            icon = 33; // used to use 7, 33 is better for uniform look
+        break
+        case "truck":
+            icon = 39;
+        break
+        case "heli":
+            icon = 34;
+        break
+        default:
+            icon = 29;
+
+    }
+    marker = mp.markers.new(icon, position, 5, {
         //direction: position,
         //rotation: position,
         color: [255, 255, 255, 127],

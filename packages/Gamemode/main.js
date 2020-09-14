@@ -75,6 +75,8 @@ var publicVehicles = [  // This will be all the public vehicles (not owned by a 
     mules,
     bensons
 ]
+
+// end vehicle defs, begin airport defs
 // If an airport is large enough, cargo and passengers is separated. Else, we will use the same array for both missions!
 
 var lsiaCargo = [                                                                           // heading true = positive false = negative
@@ -124,7 +126,26 @@ var airports = [
     {id: 4, name: "Fort Zancudo", position: new mp.Vector3(-2149.30859375, 3023.002685546875, 32.83500289916992), cargo: fzCargo, passengers: fzPassengers}
 ]
 
-//end airport def
+//end airport def, begin freight defs
+
+var port = [
+    {id: 1, position: new mp.Vector3(1219.3836669921875, -3204.430419921875, 5.884218692779541), heading: true},
+    {id: 2, position: new mp.Vector3(1218.4354248046875, -3231.289794921875, 5.906073570251465), heading: true},
+    {id: 3, position: new mp.Vector3(1233.434326171875, -3231.37841796875, 5.887096881866455), heading: true},
+    {id: 4, position: new mp.Vector3(1234.422607421875, -3204.59423828125, 5.889626502990723), heading: false},
+    {id: 5, position: new mp.Vector3(1244.908203125, -3155.563232421875, 5.845221519470215), heading: false},
+    {id: 6, position: new mp.Vector3(1244.908203125, -3148.994140625, 5.845221519470215), heading: false},
+    {id: 7, position: new mp.Vector3(1244.908203125, -3142.16650390625, 5.845221519470215), heading: false},
+    {id: 8, position: new mp.Vector3(1244.908203125, -3135.733154296875, 5.845221519470215), heading: false},
+    {id: 9, position: new mp.Vector3(1189.4459228515625, -3105.68310546875, 5.901604652404785), heading: true},
+    {id: 10, position: new mp.Vector3(1244.908203125, -3262.719482421875, 5.845221519470215), heading: false},
+    {id: 11, position: new mp.Vector3(1244.908203125, -3288.785888671875, 5.845221519470215), heading: false},
+    {id: 12, position: new mp.Vector3(1244.908203125, -3298.11767578125, 5.845221519470215), heading: false},
+    {id: 13, position: new mp.Vector3(1233.51611328125, -3330.138916015625, 5.899381160736084), heading: false},
+    {id: 14, position: new mp.Vector3(1218.5677490234375, -3330.138916015625, 5.899381160736084), heading: false},
+    {id: 15, position: new mp.Vector3(1205.554931640625, -3330.138916015625, 5.899381160736084), heading: false},
+    {id: 16, position: new mp.Vector3(1190.3651123046875, -3330.138916015625, 5.899381160736084), heading: true}
+]
 
 function checkAirport(player) { // this will check the closest airport to the player!
     distance = 9999;
@@ -288,20 +309,40 @@ mp.events.addCommand("pveh", (player) => { // This command is used to help get i
     }//${player.vehicle.position.x} ${player.vehicle.position.y} ${player.vehicle.position.z}`)}
 })
 
+mp.events.addCommand("loc", (player) => {
+    if (player.vehicle){
+        if (player.vehicle.heading > 0){
+            console.log(`id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: true`)
+        }
+        else if (player.vehicle.heading < 0){
+            console.log(`id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: false`)
+        }
+        else{
+            console.log(`id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: ${player.vehicle.heading}`)
+        }
+    }
+    else{
+        console.log(`new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z})`)
+    }
+});
+
 mp.events.addCommand("work", (player) => {
     if (player.vehicle){
         let vehicle = player.vehicle
         if (vehicle.mission){
-            checkAirport(player) // checkAirport will return an airport object, which is what we will use to determine where the player will go edit: only applicable in airport based mission
+            // checkAirport(player) // checkAirport will return an airport object, which is what we will use to determine where the player will go edit: only applicable in airport based mission
+            // moving this because this might cause an error if player did work while he is somewhere else...really it won't because we store in player.mission but lets be safe
             if (player.inMission != true){
+                checkAirport(player)
+                checkTerminal(player)
                 //player.outputChatBox(`${airport.name}`)
                 let loadAt;
-                let unloadAt;
+                let unloadAt;           // paramaters for createMissionMarker are defined in clientside main.js, heli plane or truck
                 switch(vehicle.mission){
                     case "passengers":
-                        if (player.flights >= 20){
+                        if (player.flights >= 10){
                             loadAt = airport.passengers[Math.floor(Math.random()*airport.passengers.length)];   // random position for player to load at
-                            player.call("client:createMissionMarker", [loadAt.position])
+                            player.call("client:createMissionMarker", [loadAt.position, "plane"])
                             player.call("client:createMissionBlip", [loadAt.position])  // these clientside will create the blip only for the player
                             player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${airport.name} and use /load.`)
                             //airportDestination(loadAt) // returns destination | edit: was this working???? it shoudlnt have been, fix below
@@ -315,14 +356,15 @@ mp.events.addCommand("work", (player) => {
                             player.mission.unloadAt = unloadAt
                             player.mission.loaded = false
                             player.mission.vehicle = vehicle
+                            player.mission.type = "plane"
                             player.mission.cargo = getRandomInt(1, vehicle.extra) // We use this function because in cargo we want to specify a minimum weight! Makes no sense to fly with 1 lb. 
                         }
-                        else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You need to have completed 20 flights to use this vehicle!")}
+                        else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You need to have completed 10 flights to use this vehicle!")}
                         
                     break;
                     case "cargo":
                         loadAt = airport.cargo[Math.floor(Math.random()*airport.cargo.length)];
-                        player.call("client:createMissionMarker", [loadAt.position])
+                        player.call("client:createMissionMarker", [loadAt.position, "plane"])
                         player.call("client:createMissionBlip", [loadAt.position])  
                         player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${airport.name} and use /load.`)
                         airportDestination(airport)
@@ -335,8 +377,12 @@ mp.events.addCommand("work", (player) => {
                         player.mission.unloadAt = unloadAt
                         player.mission.loaded = false
                         player.mission.vehicle = vehicle
+                        player.mission.type = "plane"
                         player.mission.cargo = getRandomInt(Math.round((vehicle.extra)/2), vehicle.extra) // the minimum cargo will be half of the cargo capability 
 
+                    break;
+                    case "freight":
+                               
                     break;
                     default:
                         player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
@@ -377,7 +423,7 @@ mp.events.addCommand("load", (player) => {
                         break;
                     }
                     player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${player.mission.destination.name} and use /unload.`)
-                    player.call("client:createMissionMarker", [player.mission.unloadAt.position])
+                    player.call("client:createMissionMarker", [player.mission.unloadAt.position, player.mission.type])
                     player.call("client:createMissionBlip", [player.mission.unloadAt.position]) 
                 }, 30000) // 30 seconds
             }
@@ -447,5 +493,6 @@ mp.events.add("server:clearMission", (player) => {
     player.mission.loaded = false
     player.mission.vehicle = null
     player.mission.cargo = null
+    player.mission.blip = null
 })
 
