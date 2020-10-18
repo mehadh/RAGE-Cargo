@@ -26,7 +26,7 @@ mp.events.add("client:createMissionMarker", (position, type) => {
 
 let blip;
 mp.events.add("client:createMissionBlip", (position) => {
-    if (blip){blip.destroy()}
+    if (blip){blip.destroy()} //try mp.blips.exists or mp.blips.forEach mp.exist, something like this?
     blip = mp.blips.new(0, position, {
         name: "Mission",
         scale: 1,
@@ -35,6 +35,19 @@ mp.events.add("client:createMissionBlip", (position) => {
 })
 
 mp.events.add("client:destroyMission", () => {
+    if (marker){marker.destroy()}
+    if (blip){blip.destroy()}
+    blip = mp.blips.new(0, new mp.Vector3(0,0,0), 
+        {
+            scale: 0,
+            alpha: 0
+        })
+    marker = mp.markers.new(29, new mp.Vector3(0,0,0), 5, {
+            //direction: position,
+            //rotation: position,
+            color: [255, 255, 255, 127],
+            visible: false
+        })
     // if (marker){marker.destroy()}
     // if (blip){blip.destroy()}
 })

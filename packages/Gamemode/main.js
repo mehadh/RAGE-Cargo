@@ -147,6 +147,14 @@ var port = [
     {id: 16, position: new mp.Vector3(1190.3651123046875, -3330.138916015625, 5.899381160736084), heading: true}
 ]
 
+var deliveries = [
+    {id: 1, position: new mp.Vector3(821.7965698242188, -2142.938720703125, 28.180543899536133), heading: false},
+    {id: 2, position: new mp.Vector3(853.760986328125, -2095.66748046875, 29.60431671142578), heading: false},
+    {id: 3, position: new mp.Vector3(933.2400512695312, -1803.6109619140625, 30.0539608001709), heading: false},
+    {id: 4, position: new mp.Vector3(931.1209106445312, -1826.037353515625, 30.190378189086914), heading: false},
+    {id: 5, position: new mp.Vector3(906.7564086914062, -1733.2340087890625, 29.910781860351562), heading: true},
+]
+
 function checkAirport(player) { // this will check the closest airport to the player!
     distance = 9999;
     airport = null;
@@ -167,6 +175,16 @@ function airportDestination(airport){   // This should pick a destination that i
     while (destination == airport){
         destination = airports[Math.floor(Math.random()*airports.length)];
     }
+    return destination
+}
+
+function checkTerminal(){ // this pulls a random place at port
+    origin = port[Math.floor(Math.random()*port.length)]
+    return origin
+}
+
+function cargoDestination(){ // this is to get a place for player to deliver to
+    destination = deliveries[Math.floor(Math.random()*deliveries.length)]
     return destination
 }
 
@@ -229,6 +247,23 @@ mp.events.add("playerQuit", (player) => {
     }
 })
 
+mp.events.add("playerDeath", (player, reason, killer) => {  // This is a simple playerDeath event notifier, hopefully to be expanded in the future.
+    // switch(reason){
+    //     case 341774354:
+    //         killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash because of ${killer.name}!`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash!`)
+    //         break;
+    //     default:
+    //         killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died because of ${killer.name}`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died!`)
+    // }
+    mp.events.call("server:clearMission", (player))
+    mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died!`)
+    setTimeout(function(){
+        player.call('client:enableCamera')
+        player.spawn(new mp.Vector3(-1757.12, -739.53, 10));
+        player.call('client:spawnMenu')
+    }, 3000)
+})
+
 mp.events.add("server:publicRespawn", vehicle => {
     let newVeh = mp.vehicles.new(vehicle.model, vehicle.publicPos, {heading: vehicle.publicHeading})    // Spawn the new vehicle with the parameters of the old one
     newVeh.publicId = vehicle.publicId  
@@ -276,55 +311,39 @@ mp.events.add("server:spawn", (player, location) => {  // This event is called f
     }
 })
 
-mp.events.addCommand("reconnect", (player) => { // This command allows for the player to reconnect themselves.
-    reconnection(player);
+mp.events.add("server:clearMission", (player) => {
+    player.inMission = false            // To be extra safe, I am resetting all the values set in /load.
+    player.mission = []
+    player.mission.origin = null
+    player.mission.destination = null
+    player.mission.loadAt = null
+    player.mission.unloadAt = null
+    player.mission.loaded = false
+    player.mission.vehicle = null
+    player.mission.cargo = null
+    player.mission.blip = null
+    player.call("client:destroyMission")
 })
 
-async function reconnection(player){ // We use an async function so we can use await
-    await player.outputChatBox("!{#f7ec16}SERVER:!{#FFFFFF} Reconnecting you to the server.")
-    player.kickSilent(); // kickSilent will not be executed until the message is sent to the player.
-}
-
-mp.events.add("playerDeath", (player, reason, killer) => {  // This is a simple playerDeath event notifier, hopefully to be expanded in the future.
-    // switch(reason){
-    //     case 341774354:
-    //         killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash because of ${killer.name}!`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died in a helicopter crash!`)
-    //         break;
-    //     default:
-    //         killer ? mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died because of ${killer.name}`) : mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died!`)
-    // }
-    mp.events.call("server:clearMission", (player))
-    mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} died!`)
-    setTimeout(function(){
-        player.call('client:enableCamera')
-        player.spawn(new mp.Vector3(-1757.12, -739.53, 10));
-        player.call('client:spawnMenu')
-    }, 3000)
+mp.events.add("server:freightMission", (player) => {
+    let vehicle = player.vehicle
+    checkTerminal()
+    loadAt = origin // for consistency!
+    player.call("client:createMissionMarker", [loadAt.position, "truck"])
+    player.call("client:createMissionBlip", [loadAt.position])
+    player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within the port and use /load.`)
+    cargoDestination()
+    player.inMission = true
+    player.mission = []
+    player.mission.vehicle = vehicle
+    player.mission.origin = loadAt
+    player.mission.destination = destination
+    player.mission.loadAt = loadAt // again just to keep compatibility/consistency, even though in truck missions we dont need specific loadAt and unloadAt points
+    player.mission.unloadAt = destination
+    player.mission.loaded = false
+    player.mission.type = "truck"
+    player.mission.cargo = getRandomInt(Math.round((vehicle.extra)/2), vehicle.extra)
 })
-
-mp.events.addCommand("pveh", (player) => { // This command is used to help get info for public vehicle points!
-    if (player.vehicle){
-        //console.log(`${player.vehicle.model} ${player.vehicle.heading} ${player.vehicle.position}`)
-        console.log(`{hash: ${player.vehicle.model}, id: changeme, position: new mp.Vector3(${player.vehicle.position.x}, -3188.1552734375, 5.876063346862793), heading: ${player.vehicle.heading}, mission: "freight", extra: 7000, publicColor: 111, publicColor2: 111},`)
-    }//${player.vehicle.position.x} ${player.vehicle.position.y} ${player.vehicle.position.z}`)}
-})
-
-mp.events.addCommand("loc", (player) => {
-    if (player.vehicle){
-        if (player.vehicle.heading > 0){
-            console.log(`id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: true`)
-        }
-        else if (player.vehicle.heading < 0){
-            console.log(`id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: false`)
-        }
-        else{
-            console.log(`id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: ${player.vehicle.heading}`)
-        }
-    }
-    else{
-        console.log(`new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z})`)
-    }
-});
 
 mp.events.addCommand("work", (player) => {
     if (player.vehicle){
@@ -334,7 +353,7 @@ mp.events.addCommand("work", (player) => {
             // moving this because this might cause an error if player did work while he is somewhere else...really it won't because we store in player.mission but lets be safe
             if (player.inMission != true){
                 checkAirport(player)
-                checkTerminal(player)
+                //checkTerminal(player)
                 //player.outputChatBox(`${airport.name}`)
                 let loadAt;
                 let unloadAt;           // paramaters for createMissionMarker are defined in clientside main.js, heli plane or truck
@@ -382,7 +401,17 @@ mp.events.addCommand("work", (player) => {
 
                     break;
                     case "freight":
-                               
+                        switch(vehicle.model){
+                            case 904750859:
+                                mp.events.call("server:freightMission", player)
+                            break
+                            case 2053223216:
+                                if (player.deliveries > 10){mp.events.call("server:freightMission", player)} // TODO: adjust
+                                else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You need to have completed 10 deliveries to use this vehicle!")}
+                            break
+                            default:
+                                player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
+                        }          
                     break;
                     default:
                         player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
@@ -390,6 +419,7 @@ mp.events.addCommand("work", (player) => {
             }
             else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You are already working!")}
         }
+        else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")}
     }
     else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You must be in a vehicle to use this command!")}
 })
@@ -414,15 +444,17 @@ mp.events.addCommand("load", (player) => {
                     switch(vehicle.mission){
                         case "passengers":
                             player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Your vehicle has been loaded with ${player.mission.cargo} passengers.`)
+                            player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${player.mission.destination.name} and use /unload.`)
                         break;
+                        case "freight":
                         case "cargo":
                             player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Your vehicle has been loaded with ${player.mission.cargo} lbs of cargo.`)
+                            player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${player.mission.destination.name} and use /unload.`)
                         break;
                         default:
                             player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
                         break;
                     }
-                    player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${player.mission.destination.name} and use /unload.`)
                     player.call("client:createMissionMarker", [player.mission.unloadAt.position, player.mission.type])
                     player.call("client:createMissionBlip", [player.mission.unloadAt.position]) 
                 }, 30000) // 30 seconds
@@ -432,10 +464,6 @@ mp.events.addCommand("load", (player) => {
         else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You can not load right now!")}
     }
     else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You must be in a vehicle to use this command!")}
-})
-
-mp.events.addCommand("text", (player, args) => {
-    player.call("client:statusText", [args])
 })
 
 // async function missionReward(mission){
@@ -465,6 +493,10 @@ mp.events.addCommand("unload", (player) => {
                             mp.events.call('server:incrementMission', player, "flights")
                             mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} transported ${player.mission.cargo} lbs of cargo from ${player.mission.origin.name} to ${player.mission.destination.name}.`)
                         break;
+                        case "freight":
+                            mp.events.call('server:incrementMission', player, "deliveries")
+                            mp.players.broadcast(`!{#187bcd}SERVER:!{#FFFFFF} ${player.name} transported ${player.mission.cargo} lbs of cargo in a truck.`)
+                        break;
                         default:
                             player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}This vehicle can not be used for work!")
                         break;
@@ -483,16 +515,41 @@ mp.events.addCommand("unload", (player) => {
     else{player.outputChatBox("!{#FF0000}ERROR: !{#FFFFFF}You must be in a vehicle to use this command!")}
 })
 
-mp.events.add("server:clearMission", (player) => {
-    player.inMission = false            // To be extra safe, I am resetting all the values set in /load.
-    player.mission = []
-    player.mission.origin = null
-    player.mission.destination = null
-    player.mission.loadAt = null
-    player.mission.unloadAt = null
-    player.mission.loaded = false
-    player.mission.vehicle = null
-    player.mission.cargo = null
-    player.mission.blip = null
+// weird cmds
+
+mp.events.addCommand("pveh", (player) => { // This command is used to help get info for public vehicle points!
+    if (player.vehicle){
+        //console.log(`${player.vehicle.model} ${player.vehicle.heading} ${player.vehicle.position}`)
+        console.log(`{hash: ${player.vehicle.model}, id: changeme, position: new mp.Vector3(${player.vehicle.position.x}, -3188.1552734375, 5.876063346862793), heading: ${player.vehicle.heading}, mission: "freight", extra: 7000, publicColor: 111, publicColor2: 111},`)
+    }//${player.vehicle.position.x} ${player.vehicle.position.y} ${player.vehicle.position.z}`)}
 })
 
+mp.events.addCommand("loc", (player) => {
+    if (player.vehicle){
+        if (player.vehicle.heading > 0){
+            console.log(`{id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: true}`)
+        }
+        else if (player.vehicle.heading < 0){
+            console.log(`{id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: false}`)
+        }
+        else{
+            console.log(`{id: "id", position: new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z}), heading: ${player.vehicle.heading}}`)
+        }
+    }
+    else{
+        console.log(`new mp.Vector3(${player.position.x}, ${player.position.y}, ${player.position.z})`)
+    }
+});
+
+mp.events.addCommand("text", (player, args) => {
+    player.call("client:statusText", [args])
+})
+
+mp.events.addCommand("reconnect", (player) => { // This command allows for the player to reconnect themselves.
+    reconnection(player);
+})
+
+async function reconnection(player){ // We use an async function so we can use await
+    await player.outputChatBox("!{#f7ec16}SERVER:!{#FFFFFF} Reconnecting you to the server.")
+    player.kickSilent(); // kickSilent will not be executed until the message is sent to the player.
+}

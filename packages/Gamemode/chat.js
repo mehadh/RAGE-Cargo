@@ -130,5 +130,5 @@ mp.events.addCommand("me", (player, message) => {
 
 mp.events.addCommand("stats", (player) => {	// TODO: colors!!!!
 	player.outputChatBox("================== RAGE:CARGO ==================")
-	player.outputChatBox(`Username: ${player.name} Account ID: ${player.sqlID} Money: $${player.money} Flights: ${player.flights} Deliveries: ${player.deliveries}`)
+	player.outputChatBox(`Username: ${player.name} || Account ID: ${player.sqlID} || Money: $${player.money} || Flights: ${player.flights} || Deliveries: ${player.deliveries}`)
 })
