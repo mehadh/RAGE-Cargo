@@ -447,6 +447,9 @@ mp.events.addCommand("load", (player) => {
                             player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${player.mission.destination.name} and use /unload.`)
                         break;
                         case "freight":
+                            player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Your vehicle has been loaded with ${player.mission.cargo} lbs of cargo.`)
+                            player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location and use /unload.`)
+                        break;
                         case "cargo":
                             player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Your vehicle has been loaded with ${player.mission.cargo} lbs of cargo.`)
                             player.outputChatBox(`!{#3C9B1B}WORK: !{#FFFFFF}Please proceed to the marked location within ${player.mission.destination.name} and use /unload.`)
